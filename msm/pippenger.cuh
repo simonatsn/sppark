@@ -389,10 +389,14 @@ public:
             size_t h_off = 0;   // host offset
             size_t num = stride;
 
-            gpu[0].HtoD(&d_scalars[d_off], &scalars[h_off], num);
+            size_t num_to_copy = stride;
+            if (num_to_copy > npoints) {
+                num_to_copy = npoints;
+            }
+            gpu[0].HtoD(&d_scalars[d_off], &scalars[h_off], num_to_copy);
             if (points)
                 gpu[0].HtoD(&d_points[d_off], &points[h_off*ffi_affine_sz],
-                            num,              ffi_affine_sz);
+                            num_to_copy,       ffi_affine_sz);
             for (size_t i = 0; i < batch; i++) {
                 gpu[i&1].launch_coop(pippenger, dim3(NWINS, N), NTHREADS,
                                                 sizeof(bucket_t)*NTHREADS,
